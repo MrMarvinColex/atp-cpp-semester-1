@@ -1,7 +1,3 @@
-//
-// Created by Goddess on 13.11.2021.
-//
-
 #ifndef ATP_CPP_SEMESTER_1_STRING_H
 #define ATP_CPP_SEMESTER_1_STRING_H
 
