@@ -4,45 +4,32 @@
 #include <iostream>
 #include <cstring>
 class String {
-  char* str;
-  size_t sz;
-  size_t capacity;
-
-  void swap (String& string) { // additional function, swap for Copy-and-swap idiom
-	  std::swap(str, string.str);
-	  std::swap(sz, string.sz);
-	  std::swap(capacity, string.capacity);
-  }
  public:
-  String () : str(new char[1]), sz(0), capacity(1) {} //Default constructor
+  String () : capacity(1), sz(0), str(new char[capacity]) {} //Default constructor
 
-  String (const char* string) : str(new char[2 * strlen(string)]), sz(strlen(string)),
-								capacity(2 * strlen(string)) { //Constructor by C-style string (const char*).
+  String (const char* string) : capacity(strlen(string) + 1),
+  								sz(strlen(string)), str(new char[capacity]) { //Constructor by C-style string (const char*).
 	  memcpy(str, string, strlen(string));
 	  str[sz] = '\0';
   }
 
-  String (size_t n, char c) : str(new char[2 * n]), sz(n), capacity(2 * n) {
+  String (size_t n, char c) : capacity(n + 1), sz(n), str(new char[capacity]) {
 	  // Constructor which makes string from n copies of character c
 	  memset(str, c, n);
 	  str[sz] = '\0';
   }
 
-  String (const String& string) : str(new char[string.capacity]), sz(string.sz), capacity(2 * string.capacity) {
+  String (const String& string) : capacity(string.capacity), sz(string.sz), str(new char[string.capacity]) {
 	  memcpy(str, string.str, sz);
 	  str[sz] = '\0';
   }
 
-  explicit String (size_t n) : str(new char[n]), sz(0), capacity(n) {}
+  explicit String (size_t n) : capacity(n), sz(0), str(new char[capacity]) {}
   // Constructor for emptystring with concrete memory
   void push_back (const char& c) { // add character c to back (if needed -> extend capacity)
 	  if (sz > (capacity - 2) || sz == 0) {
 		  capacity *= 2;
-		  //rebuild(str);
-		  char* tmp = new char[capacity];
-		  memcpy(tmp, str, sz);
-		  std::swap(tmp, str);
-		  delete[] tmp;
+		  rebuild();
 	  }
 	  str[sz++] = c;
 	  str[sz] = '\0';
@@ -52,11 +39,7 @@ class String {
 	  if (sz) {
 		  if (sz * 4 + 1 <= capacity) {
 			  capacity /= 2;
-			  //rebuild(str);
-			  char* tmp = new char[capacity];
-			  memcpy(tmp, str, sz);
-			  std::swap(tmp, str);
-			  delete[] tmp;
+			  rebuild();
 		  }
 		  str[--sz] = '\0';
 	  }
@@ -93,47 +76,50 @@ class String {
 	  return sz == 0;
   }
 
-  [[nodiscard]] size_t find (const String& string) const {
-	  bool flag = false;
-	  size_t i = 0;
-	  for (; i < sz - string.sz; ++i) {
-		  size_t count = 0;
-		  for (size_t j = i; j < i + string.sz; ++j) {
-			  if (str[j] == string.str[j - i])
-				  ++count;
-			  else
+  [[nodiscard]] size_t find (const String& string, bool is_reversed = false) const {
+	  bool is_find = false;
+	  size_t i;
+	  size_t count;
+	  if (is_reversed) {
+		  i = sz - string.sz - 1;
+		  for (; i + 1; --i) {
+			  count = 0;
+			  for (size_t j = i; j < i + string.sz; ++j) {
+				  if (str[j] == string.str[j - i])
+					  ++count;
+				  else
+					  break;
+			  }
+			  if (count == string.sz) {
+				  is_find = true;
 				  break;
+			  }
 		  }
-		  if (count == string.sz) {
-			  flag = true;
-			  break;
+	  } else {
+		  i = 0;
+		  for (; i < sz - string.sz; ++i) {
+			  count = 0;
+			  for (size_t j = i; j < i + string.sz; ++j) {
+				  if (str[j] == string.str[j - i])
+					  ++count;
+				  else
+					  break;
+			  }
+			  if (count == string.sz) {
+				  is_find = true;
+				  break;
+			  }
 		  }
 	  }
-	  return flag ? i : sz;
+	  return is_find ? i : sz;
   }
 
   [[nodiscard]] size_t find (const char* c) const {
 	  String tmp(c);
 	  return find(tmp);
   }
-  int x = 5;
   [[nodiscard]] size_t rfind (const String& string) const {
-	  bool flag = false;
-	  int i = static_cast<int>(sz - string.sz - 1);
-	  for (; i >= 0; --i) {
-		  size_t count = 0;
-		  for (size_t j = i; j < i + string.sz; ++j) {
-			  if (str[j] == string.str[j - i])
-				  ++count;
-			  else
-				  break;
-		  }
-		  if (count == string.sz) {
-			  flag = true;
-			  break;
-		  }
-	  }
-	  return flag ? i : sz;
+	  return find(string, true);
   }
 
   [[nodiscard]] size_t rfind (const char* c) const {
@@ -214,6 +200,24 @@ class String {
 
   ~String () { // Destructor for String objects
 	  delete[] str;
+  }
+  
+ private:
+  size_t capacity;
+  size_t sz;
+  char* str;
+
+  void swap (String& string) { // additional function, swap for Copy-and-swap idiom
+	  std::swap(str, string.str);
+	  std::swap(sz, string.sz);
+	  std::swap(capacity, string.capacity);
+  }
+
+  void rebuild () {
+	  char* tmp = new char[capacity];
+	  memcpy(tmp, str, sz);
+	  std::swap(tmp, str);
+	  delete[] tmp;
   }
 };
 bool operator == (const String& s1, const String& s2) {
