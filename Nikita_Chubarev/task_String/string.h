@@ -12,7 +12,7 @@ class String{
     // Считаем размер capacity от заданного size
     static size_t mk_sz_res(size_t sz) {
         size_t sz_res = 1;
-        while ((sz_res <= sz)) {
+        while (sz_res <= sz) {
             sz_res *= 2;
         }
         return sz_res;
@@ -39,9 +39,9 @@ public:
     }
 
     // конструтор копирования
-    String(const String& str_1): size_(str_1.size_), size_reserved_(mk_sz_res(size_)) {
+    String(const String& str): size_(str.size_), size_reserved_(mk_sz_res(size_)) {
         symbols_ = new char[size_reserved_];
-        memcpy(symbols_, str_1.symbols_, size_);
+        memcpy(symbols_, str.symbols_, size_);
     }
 
     // деструктор
@@ -172,14 +172,14 @@ public:
     // find
     size_t find(const String& substring) const {
         for (size_t i = 0; i < size_; ++i) {
-            bool if_find = true;
+            bool is_found = true;
             for (size_t k = 0; k < substring.size_; ++k) {
                 if (symbols_[i + k] != substring[k]) {
-                    if_find = false;
+                    is_found = false;
                     break;
                 }
             }
-            if (if_find) {
+            if (is_found) {
                 return i;
             }
         }
