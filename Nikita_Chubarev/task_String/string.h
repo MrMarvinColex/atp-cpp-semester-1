@@ -5,18 +5,6 @@
 #include <iostream>
 
 class String{
-    char* symbols_; // символы строки
-    size_t size_; // размер строки
-    size_t size_reserved_; // capacity
-
-    // Считаем размер capacity от заданного size
-    static size_t mk_sz_res(size_t sz) {
-        size_t sz_res = 1;
-        while (sz_res <= sz) {
-            sz_res *= 2;
-        }
-        return sz_res;
-    }
 
 public:
     // default конструктор (size_reserved_ равен 1 для коректной работы push_back
@@ -181,6 +169,35 @@ public:
         return smart_search(substring, -1);
     }
 
+
+    // empty
+    bool empty() const {
+        return size_ == 0;
+    }
+
+
+    // clear (size_reserved аналогично как в default конструкторе)
+    void clear() {
+        delete[] symbols_;
+        symbols_ = nullptr;
+        size_ = 0;
+        size_reserved_ = 1;
+    }
+
+private:
+    char* symbols_; // символы строки
+    size_t size_; // размер строки
+    size_t size_reserved_; // capacity
+
+    // Считаем размер capacity от заданного size
+    static size_t mk_sz_res(size_t sz) {
+        size_t sz_res = 1;
+        while (sz_res <= sz) {
+            sz_res *= 2;
+        }
+        return sz_res;
+    }
+
     // find + rfind
     size_t smart_search(const String& substring, int cmd = 1) const {
 	if (size_ < substring.size_) {
@@ -206,21 +223,6 @@ public:
 	    }
 	}
 	return size_;
-    }
-
-
-    // empty
-    bool empty() const {
-        return size_ == 0;
-    }
-
-
-    // clear (size_reserved аналогично как в default конструкторе)
-    void clear() {
-        delete[] symbols_;
-        symbols_ = nullptr;
-        size_ = 0;
-        size_reserved_ = 1;
     }
 };
 
