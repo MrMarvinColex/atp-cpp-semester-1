@@ -74,16 +74,18 @@ public:
     String& operator += (const String& str_1) {
         if (!str_1.empty()) {
             size_t new_size = size_ + str_1.size_;
-            size_t new_size_reserved = (new_size >= size_reserved_? mk_sz_res(new_size) : size_reserved_);
-            char* new_symbols = new char[new_size_reserved];
-            memcpy(new_symbols, symbols_, size_);
-            delete[] symbols_;
-            symbols_ = new_symbols;
+	    if (new_size >= size_reserved_) {
+                size_t new_size_reserved = (new_size >= size_reserved_? mk_sz_res(new_size) : size_reserved_);
+                char* new_symbols = new char[new_size_reserved];
+                memcpy(new_symbols, symbols_, size_);
+                delete[] symbols_;
+                symbols_ = new_symbols;
+		size_reserved_ = new_size_reserved;
+	    }
             for (size_t i = 0; i < str_1.size_; ++i) {
                 symbols_[size_ + i] = str_1.symbols_[i];
             }
             size_ = new_size;
-            size_reserved_ = new_size_reserved;
         }
         return *this;
     }
