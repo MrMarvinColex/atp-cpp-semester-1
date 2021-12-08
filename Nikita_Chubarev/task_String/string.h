@@ -171,47 +171,47 @@ public:
 
     // find
     size_t find(const String& substring) const {
-        for (size_t i = 0; i < size_; ++i) {
-            bool is_found = true;
-            for (size_t k = 0; k < substring.size_; ++k) {
-                if (symbols_[i + k] != substring[k]) {
-                    is_found = false;
-                    break;
-                }
-		if (k + 1 < substring.size_ && i + k + 1 == size_) {
-			is_found = false;
-			break;
-		}
-            }
-            if (is_found) {
-                return i;
-            }
-        }
-        return size_;
+        return smart_search(substring, 1);
     }
 
     // rfind
     size_t rfind(const String& substring) const {
-        size_t k = size_ - substring.size_;
-        for (size_t i = 0; i <= k; ++i) {
-            bool is_found = true;
-            for (size_t j = 0; j < substring.size_; ++j) {
-                if (symbols_[k - i + j] != substring[j]) {
-                    is_found = false;
-                    break;
-                }
-            }
-            if (is_found) {
-                return k - i;
-            }
-        }
-        return size_;
+        return smart_search(substring, -1);
     }
+
+    // find + rfind
+    size_t smart_search(const String& substring, int cmd = 1) const {
+	if (size_ < substring.size_) {
+	    return size_;
+	}
+	size_t k = size_ - substring.size_;
+	int first_start_ind;
+	if (cmd == 1) {   // cmd = 1 => find;
+	    first_start_ind = 0;
+	} else {          // cmd = -1 => rfind;
+	    first_start_ind = k;
+	}
+	for (size_t i = 0; i <= k; ++i) {
+	    bool is_found = true;
+	    for (size_t j = 0; j < substring.size_; ++j) {
+	        if (symbols_[first_start_ind + cmd * i + j] != substring.symbols_[j]) {
+		    is_found = false;
+		    break;
+		}
+	    }
+	    if (is_found) {
+		return first_start_ind + cmd * i;
+	    }
+	}
+	return size_;
+    }
+
 
     // empty
     bool empty() const {
         return size_ == 0;
     }
+
 
     // clear (size_reserved аналогично как в default конструкторе)
     void clear() {
