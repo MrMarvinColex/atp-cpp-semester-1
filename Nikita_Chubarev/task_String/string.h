@@ -178,6 +178,10 @@ public:
                     is_found = false;
                     break;
                 }
+		if (k + 1 < substring.size_ && i + k + 1 == size_) {
+			is_found = false;
+			break;
+		}
             }
             if (is_found) {
                 return i;
@@ -190,14 +194,14 @@ public:
     size_t rfind(const String& substring) const {
         size_t k = size_ - substring.size_;
         for (size_t i = 0; i <= k; ++i) {
-            bool if_find = true;
+            bool is_found = true;
             for (size_t j = 0; j < substring.size_; ++j) {
                 if (symbols_[k - i + j] != substring[j]) {
-                    if_find = false;
+                    is_found = false;
                     break;
                 }
             }
-            if (if_find) {
+            if (is_found) {
                 return k - i;
             }
         }
