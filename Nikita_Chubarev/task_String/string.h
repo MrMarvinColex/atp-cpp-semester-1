@@ -38,13 +38,13 @@ public:
     }
 
     // оператор присваивания
-    String& operator = (const String& str_1) {
-        if (this != &str_1) {
+    String& operator = (const String& str) {
+        if (this != &str) {
             delete[] symbols_;
-            size_ = str_1.size_;
-            size_reserved_ = str_1.size_reserved_;
+            size_ = str.size_;
+            size_reserved_ = str.size_reserved_;
             symbols_ = new char[size_reserved_];
-            memcpy(symbols_, str_1.symbols_, size_);
+            memcpy(symbols_, str.symbols_, size_);
         }
         return *this;
     }
@@ -59,9 +59,9 @@ public:
     }
 
     // оператор String += String
-    String& operator += (const String& str_1) {
-        if (!str_1.empty()) {
-            size_t new_size = size_ + str_1.size_;
+    String& operator += (const String& str) {
+        if (!str.empty()) {
+            size_t new_size = size_ + str.size_;
 	    if (new_size >= size_reserved_) {
                 size_t new_size_reserved = (new_size >= size_reserved_? mk_sz_res(new_size) : size_reserved_);
                 char* new_symbols = new char[new_size_reserved];
@@ -70,8 +70,8 @@ public:
                 symbols_ = new_symbols;
 		size_reserved_ = new_size_reserved;
 	    }
-            for (size_t i = 0; i < str_1.size_; ++i) {
-                symbols_[size_ + i] = str_1.symbols_[i];
+            for (size_t i = 0; i < str.size_; ++i) {
+                symbols_[size_ + i] = str.symbols_[i];
             }
             size_ = new_size;
         }
@@ -272,19 +272,19 @@ String operator + (const String& str_1, const String& str_2) {
 }
 
 // оператор String + char
-String operator + (const String& str_1, char chr) {
+String operator + (const String& str, char chr) {
     String new_str;
-    if (!str_1.empty()) {
-        new_str = str_1;
+    if (!str.empty()) {
+        new_str = str;
     }
     new_str += chr;
     return new_str;
 }
 
 // оператор char + String
-String operator + (char chr, const String& str_1) {
+String operator + (char chr, const String& str) {
     String new_str(1, chr);
-    new_str += str_1;
+    new_str += str;
     return new_str;
 }
 
