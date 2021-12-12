@@ -41,6 +41,8 @@ class String {
   size_t rfind(const char* substr) const;
   [[nodiscard]] String substr(size_t start, size_t count) const;
 
+  [[nodiscard]] String reversed() const;
+
   [[nodiscard]] bool empty() const;
   void clear();
 
@@ -103,10 +105,6 @@ char& String::operator[](size_t index) { return string_[index]; }
 const char& String::operator[](size_t index) const { return string_[index]; }
 
 size_t String::length() const {
-  if (length_ == 12) {
-    fprintf(stderr, "'%s'\n", string_);
-    return strlen(string_);
-  }
   return length_;
 }
 
@@ -151,10 +149,7 @@ String& String::operator+=(const String& str) {
     string_ = tmp;
   }
 
-  char* tmp = new char[str.length_ + 1];
-  strcpy(tmp, str.string_);
-  strcat(string_, tmp);
-  delete[] tmp;
+  strcat(string_, str.string_);
 
   length_ = total_length;
 
@@ -171,18 +166,12 @@ size_t String::find(const char* substr) const {
 }
 
 size_t String::rfind(const char* substr) const {
-  char* occurrence_pointer = nullptr;
-  char* search_pointer = string_;
-
-  while (search_pointer <= &back() &&
-         strstr(search_pointer, substr) != nullptr) {
-    occurrence_pointer = strstr(search_pointer, substr);
-    search_pointer = occurrence_pointer + strlen(substr);
-  }
-
+  String r_this = reversed();
+  String r_substr = String(substr).reversed();
+  char* occurrence_pointer = strstr(r_this.string_, r_substr.string_);
   return (occurrence_pointer == nullptr)
-             ? length_
-             : static_cast<size_t>(occurrence_pointer - string_);
+         ? length_
+         : length_ - r_substr.length_ - static_cast<size_t>(occurrence_pointer - r_this.string_);
 }
 
 String String::substr(size_t start, size_t count) const {
@@ -194,6 +183,15 @@ String String::substr(size_t start, size_t count) const {
 bool String::empty() const { return length_ == 0; }
 
 void String::clear() { length_ = 0; }
+
+String String::reversed() const {
+  char* r_string = new char[length_+1];
+  strcpy(r_string, string_);
+  for (size_t i = 0; i < (length_)/2; ++i) {
+    std::swap(r_string[i], r_string[length_-1-i]);
+  }
+  return String(r_string);
+}
 
 String operator+(const String& str, char chr) {
   String string(str);
