@@ -108,8 +108,8 @@ class String {
     if (this == &string)
       return *this;
     clear();
-    if (string.size > size)
-      set_memory(string.size);
+    if (string.len + 1 > size)
+      set_memory(string.len + 1);
     len = string.len;
     for (size_t i = 0; i < len; ++i)
       str[i] = string.str[i];
