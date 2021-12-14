@@ -1,15 +1,19 @@
 #include <iostream>
 
 size_t convert_string_in_int(const char* str) {
+  bool isMinus = false;
   int number = 0;
   for (size_t i = 0; str[i]; ++i) {
+    if (str[i] == '-')
+      isMinus = true;  
     number *= 10;
     number += (str[i] - '0');
   }
-  return number;
+  return (isMinus ? -number : number);
 }
 
 bool check_index(size_t index, const size_t* indexes, size_t number_of_indexes) {
+  // returns true if indexes don't repeat
   for (size_t i = 0; i < number_of_indexes; ++i) {
     if (index == indexes[i])
       return false;
