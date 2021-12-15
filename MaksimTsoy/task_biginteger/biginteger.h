@@ -3,33 +3,8 @@
 #include <string>
 
 class BigInteger {
- private:
-  const int base = 1e+09;
-  bool isMinus;
-  int size;
-  std::vector<long long> number;   //number = v[0] * base^0 + v[1] * base^1 + ...
-
-  [[nodiscard]] bool is_not_greater_than(const BigInteger& x) const {
-    //return true if |*this| <= |x|
-    if (size != x.size)
-      return size < x.size;
-    for (int i = size - 1; i >= 0; --i) {
-      if (number[i] != x.number[i])
-        return number[i] < x.number[i];
-    }
-    return true;
-  }
-
-  void resize() {
-    // delete zeros in the beginning
-    while ((size > 1) && (number[size - 1] == 0))
-      --size;
-    if ((size == 1) && (number[0] == 0))
-      isMinus = false;
-    number.resize(size);
-  }
  public:
-  BigInteger(int x): isMinus(x < 0), size(std::abs(x) / base + 1), number() {
+  BigInteger(int x): isMinus(x < 0), size(std::abs(x) >= base ? 2 : 1), number() {
     x = std::abs(x);
     for (int i = 0; i < size; ++i) {
       number.push_back(x % base);
@@ -58,7 +33,7 @@ class BigInteger {
   }
 
   [[nodiscard]] BigInteger abs() const {
-    return ((*this < 0) ? -*this : *this);
+    return (isMinus ? -*this : *this);
   }
 
   BigInteger& operator=(const BigInteger& x) {
@@ -71,6 +46,8 @@ class BigInteger {
   bool operator<=(const BigInteger& x) const {
     if (isMinus xor x.isMinus)
       return isMinus;
+    if (*this == x)
+      return true;
     return (isMinus ? !is_not_greater_than(x) : is_not_greater_than(x));
   }
 
@@ -79,7 +56,13 @@ class BigInteger {
   }
 
   bool operator==(const BigInteger& x) const {
-    return ((x <= *this) && (*this <= x));
+    if ((isMinus xor x.isMinus) || (size != x.size))
+      return false;
+    for (int i = 0; i < size; ++i) {
+      if (number[i] != x.number[i])
+        return false;
+    }
+    return true;
   }
 
   bool operator<(const BigInteger& x) const {
@@ -91,115 +74,15 @@ class BigInteger {
   }
 
   bool operator!=(const BigInteger& x) const {
-    return ((x <= *this) xor (*this <= x));
+    return !(*this == x);
   }
 
   BigInteger& operator+=(const BigInteger& x) {
-    if (!(isMinus xor x.isMinus)) {
-      long long extra = 0;
-      int max_size = std::max(size, x.size) + 1;
-      for (int i = 0; i < max_size; ++i) {
-        if (i >= size) {
-          ++size;
-          number.push_back(0);
-        }
-        long long x1 = number[i];
-        long long x2 = (i < x.size) ? x.number[i] : 0;
-        number[i] = (x1 + x2 + extra) % base;
-        extra = (x1 + x2 + extra) / base;
-        if ((i >= x.size - 1) && (extra == 0))
-          break;
-      }
-
-    } else if (is_not_greater_than(x)) {
-      isMinus = !isMinus;
-      long long debt = 0;
-      for (int i = 0; i < x.size; ++i) {
-        if (i >= size) {
-          ++size;
-          number.push_back(0);
-        }
-        if (x.number[i] >= number[i] + debt) {
-          number[i] = x.number[i] - number[i] - debt;
-          debt = 0;
-        } else {
-          number[i] = base + x.number[i] - number[i] - debt;
-          debt = 1;
-        }
-      }
-
-    } else {
-      long long debt = 0;
-      for (int i = 0; i < size; ++i) {
-        if ((i >= x.size) && (debt == 0))
-          break;
-        long long x2 = (i < x.size) ? x.number[i] : 0;
-        if (number[i] >= x2 + debt) {
-          number[i] = number[i] - x2 - debt;
-          debt = 0;
-        } else {
-          number[i] = base + number[i] - x2 - debt;
-          debt = 1;
-        }
-      }
-    }
-
-    resize();
-    return *this;
+    return sum(x, false);
   }
 
   BigInteger& operator-=(const BigInteger& x) {
-    if (isMinus xor x.isMinus) {
-      long long extra = 0;
-      int max_size = std::max(size, x.size) + 1;
-      for (int i = 0; i < max_size; ++i) {
-        if (i >= size) {
-          ++size;
-          number.push_back(0);
-        }
-        long long x1 = number[i];
-        long long x2 = (i < x.size) ? x.number[i] : 0;
-        number[i] = (x1 + x2 + extra) % base;
-        extra = (x1 + x2 + extra) / base;
-        if ((i >= x.size - 1) && (extra == 0))
-          break;
-      }
-
-    } else if (is_not_greater_than(x)) {
-      isMinus = !isMinus;
-      long long debt = 0;
-      for (int i = 0; i < x.size; ++i) {
-        if (i >= size) {
-          ++size;
-          number.push_back(0);
-        }
-        if (x.number[i] >= number[i] + debt) {
-          number[i] = x.number[i] - number[i] - debt;
-          debt = 0;
-        } else {
-          number[i] = base + x.number[i] - number[i] - debt;
-          debt = 1;
-        }
-      }
-
-    } else {
-      long long debt = 0;
-      for (int i = 0; i < size; ++i) {
-        if ((i >= x.size) && (debt == 0))
-          break;
-        long long x2 = (i < x.size) ? x.number[i] : 0;
-        if (number[i] >= x2 + debt) {
-          number[i] = number[i] - x2 - debt;
-          debt = 0;
-        } else {
-          number[i] = base + number[i] - x2 - debt;
-          debt = 1;
-        }
-      }
-    }
-
-    resize();
-    return *this;
+    return sum(x, true);
   }
 
   BigInteger& operator*=(const BigInteger& x) {
@@ -321,6 +204,86 @@ class BigInteger {
   }
 
   ~BigInteger() = default;
+
+ private:
+  const int base = 1e+09;
+  bool isMinus;
+  int size;
+  std::vector<long long> number;   //number = v[0] * base^0 + v[1] * base^1 + ...
+
+  [[nodiscard]] bool is_not_greater_than(const BigInteger& x) const {
+    //return true if |*this| <= |x|
+    if (size != x.size)
+      return size < x.size;
+    for (int i = size - 1; i >= 0; --i) {
+      if (number[i] != x.number[i])
+        return number[i] < x.number[i];
+    }
+    return true;
+  }
+
+  void resize() {
+    // delete zeros in the beginning
+    while ((size > 1) && (number[size - 1] == 0))
+      --size;
+    if ((size == 1) && (number[0] == 0))
+      isMinus = false;
+    number.resize(size);
+  }
+
+  BigInteger& sum(const BigInteger& x, bool if_subtraction) {
+    if (!(isMinus xor x.isMinus) xor if_subtraction) {
+      long long extra = 0;
+      int max_size = std::max(size, x.size) + 1;
+      for (int i = 0; i < max_size; ++i) {
+        if (i >= size) {
+          ++size;
+          number.resize(size);
+        }
+        long long x1 = number[i];
+        long long x2 = (i < x.size) ? x.number[i] : 0;
+        number[i] = (x1 + x2 + extra) % base;
+        extra = (x1 + x2 + extra) / base;
+        if ((i >= x.size - 1) && (extra == 0))
+          break;
+      }
+
+    } else if (is_not_greater_than(x)) {
+      isMinus = !isMinus;
+      long long debt = 0;
+      for (int i = 0; i < x.size; ++i) {
+        if (i >= size) {
+          ++size;
+          number.resize(size);
+        }
+        if (x.number[i] >= number[i] + debt) {
+          number[i] = x.number[i] - number[i] - debt;
+          debt = 0;
+        } else {
+          number[i] = base + x.number[i] - number[i] - debt;
+          debt = 1;
+        }
+      }
+
+    } else {
+      long long debt = 0;
+      for (int i = 0; i < size; ++i) {
+        if ((i >= x.size) && (debt == 0))
+          break;
+        long long x2 = (i < x.size) ? x.number[i] : 0;
+        if (number[i] >= x2 + debt) {
+          number[i] = number[i] - x2 - debt;
+          debt = 0;
+        } else {
+          number[i] = base + number[i] - x2 - debt;
+          debt = 1;
+        }
+      }
+    }
+
+    resize();
+    return *this;
+  }
 };
 
 BigInteger operator+(int x1, const BigInteger& x2) {
@@ -377,33 +340,6 @@ std::istream& operator>>(std::istream& in, BigInteger& x) {
 
 
 class Rational {
- private:
-  BigInteger num;
-  BigInteger denom;
-
-  void short_rational() {
-    BigInteger n = num.abs();
-    BigInteger d = denom.abs();
-    while ((n != 0) && (d != 0)) {
-      if (n >= d)
-        n %= d;
-      else
-        d %= n;
-    }
-    BigInteger gcd = n + d;
-    if (gcd != 0) {
-      num /= gcd;
-      denom /= gcd;
-    } else {
-      denom = 1;
-    }
-
-    if (denom < 0) {
-      num = -num;
-      denom = -denom;
-    }
-  }
-
  public:
   Rational(const BigInteger& x): num(x), denom(1) {}
 
@@ -456,7 +392,7 @@ class Rational {
     num *= x.denom;
     num += x.num * denom;
     denom *= x.denom;
-    short_rational();
+    cut_rational();
     return *this;
   }
 
@@ -464,21 +400,21 @@ class Rational {
     num *= x.denom;
     num -= x.num * denom;
     denom *= x.denom;
-    short_rational();
+    cut_rational();
     return *this;
   }
 
   Rational& operator*=(const Rational& x) {
     num *= x.num;
     denom *= x.denom;
-    short_rational();
+    cut_rational();
     return *this;
   }
 
   Rational& operator/=(const Rational& x) {
     num *= x.denom;
     denom *= x.num;
-    short_rational();
+    cut_rational();
     return *this;
   }
 
@@ -509,8 +445,8 @@ class Rational {
   }
 
   explicit operator double() const {
-    // what return if rational overflow of double ???
-    return 1;
+    double d = std::stod(asDecimal(16));
+    return d;
   }
 
   friend Rational operator+(const Rational& r1, const Rational& r2);
@@ -519,32 +455,60 @@ class Rational {
   friend Rational operator/(const Rational& r1, const Rational& r2);
 
   ~Rational() = default;
+
+ private:
+  BigInteger num;
+  BigInteger denom;
+
+  void cut_rational() {
+    BigInteger n = num.abs();
+    BigInteger d = denom.abs();
+    while ((n != 0) && (d != 0)) {
+      if (n >= d) {
+        n %= d;
+      } else {
+        d %= n;
+      }
+    }
+    BigInteger gcd = n + d;
+    if (gcd != 0) {
+      num /= gcd;
+      denom /= gcd;
+    } else {
+      denom = 1;
+    }
+
+    if (denom < 0) {
+      num = -num;
+      denom = -denom;
+    }
+  }
 };
 
 Rational operator+(const Rational& r1, const Rational& r2) {
   Rational r = r1;
   r += r2;
-  r.short_rational();
+  r.cut_rational();
   return r;
 }
 
 Rational operator-(const Rational& r1, const Rational& r2) {
   Rational r = r1;
   r -= r2;
-  r.short_rational();
+  r.cut_rational();
   return r;
 }
 
 Rational operator*(const Rational& r1, const Rational& r2) {
   Rational r = r1;
   r *= r2;
-  r.short_rational();
+  r.cut_rational();
   return r;
 }
 
 Rational operator/(const Rational& r1, const Rational& r2) {
   Rational r = r1;
   r /= r2;
-  r.short_rational();
+  r.cut_rational();
   return r;
 }
