@@ -2,11 +2,6 @@
 #include <cstring>
 
 class String {
-private:
-    size_t len = 0;
-    char* str;
-    size_t memory_size = 2;
-
 public:
 
     /// Destructor
@@ -17,8 +12,13 @@ public:
     /// Constructors
     String() {
         len = 0;
-        str = new char[2]; str[0] = '\0'; str[1] = '\0';
-        memory_size = 2;
+        str = new char[8];
+        str[0] = '\0';
+        memory_size = 8;
+    }
+    String(std::initializer_list<char> lst): len(lst.size()), str(new char[len * 2]), memory_size(len * 2) {
+        std::copy(lst.begin(), lst.end(), str);
+        str[len] = '\0';
     }
     String (const char* inputArray): len(strlen(inputArray)), str(new char[len * 2]), memory_size(len * 2){
         str[0] = '\0';
@@ -28,7 +28,7 @@ public:
         memset(str, inputChar, count);
         str[len] = '\0';
     }
-    String (char unoChar): len(1), str(new char[2]), memory_size(2) {
+    String (char unoChar): len(1), str(new char[8]), memory_size(8) {
         str[0] = unoChar;
         str[1] = '\0';
     }
@@ -119,32 +119,14 @@ public:
     }
 
     size_t find(const String substring) const {
-        size_t indexOfInclusion = len;
-        for(size_t i = 0; i <= len - substring.len; i++) {
-            size_t delta = 0;
-            while (str[i + delta] == substring[delta]) {
-                if (delta == substring.len - 1) indexOfInclusion = i;
-                delta++;
-            }
-            if (indexOfInclusion == i) break;
-        }
-        return indexOfInclusion;
+        return mainFind(substring, false);
     }
     size_t rfind(const String substring) const {
-        size_t indexOfInclusion = len;
-        for(size_t i = len - substring.len;; i--) {
-            size_t delta = 0;
-            while (str[i + delta] == substring[delta]) {
-                if (delta == substring.len - 1) indexOfInclusion = i;
-                delta++;
-            }
-            if (indexOfInclusion == i || i == 0) break;
-        }
-        return indexOfInclusion;
+        return mainFind(substring, true);
     }
 
     String substr(size_t start, size_t count) const {
-        char* substring = new char[count * 2];
+        char* substring = new char[len * 2];
         substring[0] = '\0';
         strcat(substring, str + start);
         substring[count] = '\0';
@@ -152,9 +134,7 @@ public:
     }
 
     bool empty() {
-        bool give = false;
-        if (len == 0) give = true;
-        return give;
+        return len == 0;
     }
 
     void clear() {
@@ -164,6 +144,16 @@ public:
         memory_size = 2;
     }
 
+    friend std::ostream& operator<<(std::ostream& out, const String& string);
+    friend std::istream& operator>>(std::istream& in, String& string);
+    friend bool operator==(const String&, const String&);
+
+private:
+    size_t len = 0;
+    char* str;
+    size_t memory_size = 2;
+
+
     /// Functions
     void swap(String& swapString) {
         std::swap(len, swapString.len);
@@ -171,9 +161,44 @@ public:
         std::swap(memory_size, swapString.memory_size);
     }
 
-    friend std::ostream& operator<<(std::ostream& out, const String& string);
-    friend std::istream& operator>>(std::istream& in, String& string);
-    friend bool operator==(const String&, const String&);
+    void reverse(String& gnirts) const {
+        String copy = gnirts;
+        for (size_t i = 0; i < copy.len; i++) {
+            gnirts[i] = copy[copy.len - i - 1];
+        }
+    }
+    size_t mainFind(const String substring, bool isReverse) const {
+        String copySubstring = substring;
+        String copyOfThis = *this;
+        if (isReverse) {
+            reverse(copySubstring);
+            reverse(copyOfThis);
+        }
+        size_t indexOfInclusion = len;
+        for(size_t i = 0; i <= len - copySubstring.len; i++) {
+            size_t delta = 0;
+            while (copyOfThis.str[i + delta] == copySubstring[delta]) {
+                if (delta == copySubstring.len - 1) indexOfInclusion = i;
+                delta++;
+            }
+            if (indexOfInclusion == i) break;
+        }
+        if (indexOfInclusion == len)
+            return len;
+        else {
+            return isReverse ? len - indexOfInclusion - copySubstring.len : indexOfInclusion;
+        }
+    }
+    // Она почему-то не хочет работать! 
+    String& updateMemorySize(String& copy, size_t newLen) {
+        String temporaryString(copy);
+        delete[] str;
+        copy.memory_size = newLen * 2;
+        copy.str = new char[copy.memory_size];
+        copy.str[0] = '\0';
+        strcat(str, temporaryString.str);
+        return copy;
+    }
 };
 
 bool operator==(const String& first, const String& second) {
