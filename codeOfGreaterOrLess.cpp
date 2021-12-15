@@ -3,19 +3,21 @@
 size_t dotNumber(char* searchingString) {
     size_t index = strlen(searchingString);
     for(int i = 0; i < index; i++) {
-        if (searchingString[i] == '.')
+        if (searchingString[i] == '.') {
             index = i + 1;
+            break;
+        }
     }
     return index;
 }
 
-void removeNull(char* forRemoveChar) {
-    size_t index = strlen(forRemoveChar) - 1;
-    while (forRemoveChar[index] == '0' && index > 0) {
-        forRemoveChar[index] = '\0';
+void removeNull(char* strWithZerosAtTheEnd) {
+    size_t index = strlen(strWithZerosAtTheEnd) - 1;
+    while (strWithZerosAtTheEnd[index] == '0' && index > 0) {
+        strWithZerosAtTheEnd[index] = '\0';
         index--;
     }
-    if (forRemoveChar[index] == '.' && index > 0) forRemoveChar[index] = '\0';
+    if (strWithZerosAtTheEnd[index] == '.' && index > 0) strWithZerosAtTheEnd[index] = '\0';
 }
 
 char comparison(char* firstNum, char* secondNum) {
