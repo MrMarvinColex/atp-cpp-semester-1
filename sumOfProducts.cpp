@@ -1,6 +1,6 @@
 #include <iostream>
 
-bool correctIndexes(size_t sizeTLen, const size_t* valuesOfIndexes) {
+bool isIndexCorrect(size_t sizeTLen, const size_t* valuesOfIndexes) {
     bool returnAnswer = true;
 
     int len = static_cast<int>(sizeTLen);
@@ -16,11 +16,11 @@ bool correctIndexes(size_t sizeTLen, const size_t* valuesOfIndexes) {
     return returnAnswer;
 }
 
-long long theRealCounter(size_t lenOfPointer, size_t* lenOfArrays, int** pointerArrays,
+long long searchSum(size_t lenOfPointer, size_t* lenOfArrays, int** pointerArrays,
                          size_t numberOfStep, long long temporaryAnswer, size_t* valuesOfIndexes, long long delta) {
 
     if (numberOfStep == lenOfPointer) {
-        if (correctIndexes(lenOfPointer, valuesOfIndexes))
+        if (isIndexCorrect(lenOfPointer, valuesOfIndexes))
             return delta;
         else
             return 0;
@@ -28,7 +28,7 @@ long long theRealCounter(size_t lenOfPointer, size_t* lenOfArrays, int** pointer
 
     for (size_t i = 0; i < lenOfArrays[numberOfStep]; i++) {
         valuesOfIndexes[numberOfStep] = i;
-        temporaryAnswer += theRealCounter(lenOfPointer, lenOfArrays, pointerArrays,numberOfStep + 1,
+        temporaryAnswer += searchSum(lenOfPointer, lenOfArrays, pointerArrays,numberOfStep + 1,
                                           0, valuesOfIndexes, delta * pointerArrays[numberOfStep][i]);
     }
 
@@ -51,9 +51,9 @@ int main(int numberStrings, char* charArray[]) {
             std::cin >> pointerArrays[i][j];
         }
     }
-  
+
     auto* valueOfIndexes = new size_t[lenOfPointer];
-    std::cout << theRealCounter(lenOfPointer, lenOfArrays, pointerArrays, 0, 0, valueOfIndexes, 1);
+    std::cout << searchSum(lenOfPointer, lenOfArrays, pointerArrays, 0, 0, valueOfIndexes, 1);
 
     for (size_t i = 0; i < lenOfPointer; i++)
         delete[] pointerArrays[i];
