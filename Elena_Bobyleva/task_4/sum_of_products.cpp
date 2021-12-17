@@ -24,7 +24,6 @@ long long get_sum_of_products(long long product, int index, int argc, int* sizes
             get_sum_of_products(product * array[index][i], index + 1, argc, sizes, array, used);
             used[i] = false;
         }
-
     }
     return ans;
 }
