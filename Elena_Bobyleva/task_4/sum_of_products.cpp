@@ -6,20 +6,23 @@ int str_to_int(const char* str) {
         result *= 10;
         result += str[i] - '0';
     }
+    if (str[0] == '-') {
+        result *= (-1);
+    }
     return result;
 }
 
 
-long long get_ans(long long product, int index, int argc, int* sizes, int** array, bool* used) {
+long long get_sum_of_products(long long production, int index, int argc, int* sizes, int** array, bool* used) {
     static long long ans = 0;
     if (argc == index) {
-        ans += product;
-        return 0;
+        ans += production;
+        return -1;
     }
     for (int i = 0; i < sizes[index]; ++i) {
         if (!used[i]) {
             used[i] = true;
-            get_ans(product * array[index][i], index + 1, argc, sizes, array, used);
+            get_sum_of_products(production * array[index][i], index + 1, argc, sizes, array, used);
             used[i] = false;
         }
 
@@ -52,7 +55,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < max_k; i++) {
         used[i] = false;
     }
-    std::cout << get_ans(1, 0, argc, sizes, array, used);
+    std::cout << get_sum_of_products(1, 0, argc, sizes, array, used);
     for (int i = 0; i < argc; i++) {
         delete[] array[i];
     }
