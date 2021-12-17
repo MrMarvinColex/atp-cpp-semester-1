@@ -13,16 +13,16 @@ int str_to_int(const char* str) {
 }
 
 
-long long get_sum_of_products(long long production, int index, int argc, int* sizes, int** array, bool* used) {
+long long get_sum_of_products(long long product, int index, int argc, int* sizes, int** array, bool* used) {
     static long long ans = 0;
     if (argc == index) {
-        ans += production;
+        ans += product;
         return -1;
     }
     for (int i = 0; i < sizes[index]; ++i) {
         if (!used[i]) {
             used[i] = true;
-            get_sum_of_products(production * array[index][i], index + 1, argc, sizes, array, used);
+            get_sum_of_products(product * array[index][i], index + 1, argc, sizes, array, used);
             used[i] = false;
         }
 
