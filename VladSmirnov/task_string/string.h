@@ -123,7 +123,9 @@ public:
         while (--count >= 0) {
             substring[count] = string_[start_index + count];
         }
-        return substring;
+        String result = substring;
+        delete substring;
+        return result;
     }
 
     bool is_substring(int i, const char*& substring, size_t substring_size)const {
@@ -139,7 +141,7 @@ public:
 
     size_t find(const char* substring)const {
         size_t substring_size = strlen(substring);
-        if (substring_size == 0 || substring_size > static_cast<size_t>(index_of_last_char_ + 1)) return 0;
+        if (substring_size == 0 || substring_size > static_cast<size_t>(index_of_last_char_ + 1)) return index_of_last_char_ + 1;
         for (int i = 0; i <= static_cast<int>(index_of_last_char_ - substring_size) + 1; ++i) {
             if (is_substring(i, substring, substring_size)) return i;   
         }
