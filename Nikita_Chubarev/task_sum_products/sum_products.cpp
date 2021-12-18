@@ -1,13 +1,12 @@
 #include <iostream>
 
-bool check_index(int num_indexes, size_t*& indexes, size_t new_index){
-    bool res = true;
+bool is_index_unused(int num_indexes, size_t*& indexes, size_t new_index){ 
     for (int i = 0; i < num_indexes; ++i) {
         if (new_index == indexes[i]) {
-            res = false;
+	    return false;	
         }
     }
-    return res;
+    return true;
 }
 
 long long calculate(int current_array, size_t*& indexes, size_t*& starts_of_indexes,
@@ -17,7 +16,7 @@ long long calculate(int current_array, size_t*& indexes, size_t*& starts_of_inde
     }
     long long result = 0ll;
     for (size_t i_k = 0ll; i_k < starts_of_indexes[current_array] - starts_of_indexes[current_array-1]; ++i_k) {
-        if (check_index(current_array, indexes, i_k)){
+        if (is_index_unused(current_array, indexes, i_k)){
             indexes[current_array] = i_k;
             result += total_array[starts_of_indexes[current_array-1] + i_k] * calculate(current_array+1, indexes,
                                                                                    starts_of_indexes,total_array, last_array);
