@@ -1,20 +1,17 @@
-#ifndef ATP_CPP_SEMESTER_1_STRING_H
-#define ATP_CPP_SEMESTER_1_STRING_H
-
 #include <iostream>
 #include <cstring>
 
 class String {
 public:
     //Constructors
-    String() : _pointer(new char[10]), _size(0), _memory(10) {}
+    String() : _size(0), _memory(0), _pointer(new char[0]) {}
 
-    String(const char* _string) : _pointer(new char[2 * strlen(_string)]), _size(strlen(_string)),
-                                  _memory(2 * strlen(_string)) {
+    String(const char* _string) : _size(strlen(_string)), _memory(strlen(_string)),
+                                  _pointer(new char[strlen(_string)]) {
         memcpy(_pointer, _string, _size);
     }
 
-    String(size_t n, char c) : _pointer(new char[2 * n]), _size(n), _memory(2 * n) {
+    String(size_t n, char c) : _size(n), _memory(n), _pointer(new char[n]) {
         memset(_pointer, c, n);
     }
 
@@ -31,13 +28,16 @@ public:
         return *this;
     }
 
-    bool operator==(const String& orig) {
-        if (orig.length() == _size) {
-            for (size_t i = 0; i < _size; ++i) {
-                if (orig[i] != _pointer[i])
-                    return false;
-            }
+    bool operator==(const String& orig) const {
+        if (orig.length() != _size) {
+            return false;
         }
+
+        for (size_t i = 0; i < _size; ++i) {
+            if (orig[i] != _pointer[i])
+                return false;
+        }
+
         return true;
     }
 
@@ -93,7 +93,7 @@ public:
 
     void pop_back() {
         _size--;
-        if (_size * 2 < _memory) {
+        if (_size * 4 < _memory) {
             char* new_str = new char[3 * _memory / 4];
             memcpy(new_str, _pointer, _size);
             delete[] _pointer;
@@ -141,24 +141,11 @@ public:
     }
 
     size_t find(const String& s) const {
-        size_t len = s.length();
-        for (size_t i = 0; i <= _size - len; ++i) {
-            if (this->substr(i, len) == s) {
-                return i;
-            }
-        }
-        return _size;
+        return search(s);
     }
 
     size_t rfind(const String& s) const {
-        size_t len = s.length();
-        size_t ans = _size;
-        for (size_t i = 0; i <= _size - len; ++i) {
-            if (this->substr(i, len) == s) {
-                ans = i;
-            }
-        }
-        return ans;
+        return search(s, 'r');
     }
 
     void clear() {
@@ -173,9 +160,9 @@ public:
     }
 
 private:
-    char* _pointer;
     size_t _size;
     size_t _memory;
+    char* _pointer;
 
     void copy_method(const String& orig) {
         _size = orig._size;
@@ -185,13 +172,25 @@ private:
     }
 
     void double_memory() {
-        String _tmp(_memory, '0');
+        String _tmp(2 * _memory, '0');
         for (size_t i = 0; i < _size; i++)
             _tmp._pointer[i] = _pointer[i];
         _tmp._size = _size;
         _tmp.swap(*this);
     }
 
+    size_t search(const String& s, char type = 'l') const {
+        size_t len = s.length();
+        size_t ans = _size;
+        for (size_t i = 0; i <= _size - len; ++i) {
+            if (this->substr(i, len) == s) {
+                if (type == 'l')
+                    return i;
+                ans = i;
+            }
+        }
+        return ans;
+    }
 };
 
 void swap(String& _left_operand, String& _right_operand) {
@@ -217,6 +216,3 @@ std::istream& operator>>(std::istream& in, String& s) {
     }
     return in;
 }
-
-
-#endif //ATP_CPP_SEMESTER_1_STRING_H
