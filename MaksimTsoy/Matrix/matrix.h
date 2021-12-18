@@ -610,21 +610,6 @@ struct IsPrimeHelper<N, D, true> {
 
 template <size_t N>
 class Residue {
- private:
-  size_t value;
-
-  Residue<N> find_reverse(Residue<N> r) const {
-    Residue<N> result = 1;
-    size_t power = N - 2;
-    while (power) {
-      if (power & 1)
-        result *= r;
-      r *= r;
-      power >>= 1;
-    }
-    return result;
-  }
-
  public:
   Residue(int x): value((x >= 0) ? (x % N) : ((N - -x % N) % N)) {}
 
@@ -667,6 +652,21 @@ class Residue {
   }
 
   ~Residue() = default;
+
+ private:
+  size_t value;
+
+  Residue<N> find_reverse(Residue<N> r) const {
+    Residue<N> result = 1;
+    size_t power = N - 2;
+    while (power) {
+      if (power & 1)
+        result *= r;
+      r *= r;
+      power >>= 1;
+    }
+    return result;
+  }
 };
 
 template <size_t N>
@@ -702,33 +702,6 @@ Residue<N> operator/(const Residue<N>& r1, const Residue<N>& r2) {
 
 template <size_t M, size_t N = M, typename Field = Rational>
 class Matrix {
- private:
-  std::vector<std::vector<Field>> matrix;
-
-  std::pair<Matrix<M, N, Field>, bool> find_triangle_matrix() const {
-    Matrix<M, N, Field> m = *this;
-    bool det_sign = true;
-    for (size_t i = 0; i < std::min(M, N); ++i) {
-      size_t pivot_row = i;
-      while ((pivot_row < M - 1) && (m[pivot_row][i] == 0))
-        ++pivot_row;
-      if (pivot_row != i) {
-        std::swap(m[i], m[pivot_row]);
-        det_sign = !det_sign;
-      }
-
-      if (m[i][i] != 0) {
-        for (size_t j = i + 1; j < M; ++j) {
-          Field del = m[j][i] / m[i][i];
-          for (size_t k = i; k < N; ++k)
-            m[j][k] -= del * m[i][k];
-        }
-      }
-    }
-
-    return {m, det_sign};
-  }
-
  public:
   template <typename = typename std::enable_if<N == M>>
   Matrix(): matrix(std::vector(M, std::vector(M, Field(0)))) {
@@ -908,6 +881,33 @@ class Matrix {
   Matrix<M, N, Field> inverted() {
     Matrix<M, N, Field> inv = *this;
     return inv.invert();
+  }
+
+   private:
+    std::vector<std::vector<Field>> matrix;
+
+  std::pair<Matrix<M, N, Field>, bool> find_triangle_matrix() const {
+    Matrix<M, N, Field> m = *this;
+    bool det_sign = true;
+    for (size_t i = 0; i < std::min(M, N); ++i) {
+      size_t pivot_row = i;
+      while ((pivot_row < M - 1) && (m[pivot_row][i] == 0))
+        ++pivot_row;
+      if (pivot_row != i) {
+        std::swap(m[i], m[pivot_row]);
+        det_sign = !det_sign;
+      }
+
+      if (m[i][i] != 0) {
+        for (size_t j = i + 1; j < M; ++j) {
+          Field del = m[j][i] / m[i][i];
+          for (size_t k = i; k < N; ++k)
+            m[j][k] -= del * m[i][k];
+        }
+      }
+    }
+
+    return {m, det_sign};
   }
 };
 
