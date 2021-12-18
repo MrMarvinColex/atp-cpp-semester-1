@@ -3,7 +3,7 @@
 bool is_index_unused(int num_indexes, size_t*& indexes, size_t new_index){ 
     for (int i = 0; i < num_indexes; ++i) {
         if (new_index == indexes[i]) {
-	    return false;	
+		return false;	
         }
     }
     return true;
