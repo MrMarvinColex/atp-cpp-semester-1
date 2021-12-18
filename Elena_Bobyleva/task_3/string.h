@@ -56,7 +56,6 @@ public:
         return *this;
     }
 
-    //
     String operator+(char _char) const {
         String _result(*this);
         _result += _char;
