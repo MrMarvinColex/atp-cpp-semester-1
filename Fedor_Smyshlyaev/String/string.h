@@ -2,8 +2,7 @@
 #include <cstring>
 
 class String {
-public:
-
+public: 
     /// Destructor
     ~String() {
         delete[] str;
@@ -21,8 +20,7 @@ public:
         str[len] = '\0';
     }
     String (const char* inputArray): len(strlen(inputArray)), str(new char[len * 2]), memory_size(len * 2){
-        str[0] = '\0';
-        strcat(str, inputArray);
+        strcpy(str, inputArray);
     }
     String (size_t count, char inputChar): len(count), str(new char[count * 2]), memory_size(count * 2) {
         memset(str, inputChar, count);
@@ -60,14 +58,8 @@ public:
     }
     String& operator+=(const char* addingChars) {
         size_t newLen = len + strlen(addingChars);
-        if (newLen > memory_size) {
-            String temporaryString(*this);
-            delete[] str;
-            memory_size = newLen * 2;
-            str = new char[memory_size];
-            str[0] = '\0';
-            strcat(str, temporaryString.str);
-        }
+        if (newLen > memory_size)
+            updateMemorySize(newLen);
         strcat(str, addingChars);
         len = newLen;
         str[len] = '\0';
@@ -80,14 +72,8 @@ public:
     }
 
     void push_back(char addingChar) {
-        if (len >= memory_size - 1) {
-            String temporaryString(*this);
-            delete[] str;
-            memory_size *= 2;
-            str = new char[memory_size];
-            str[0] = '\0';
-            strcat(str, temporaryString.str);
-        }
+        if (len >= memory_size - 1)
+            updateMemorySize(memory_size * 2);
         str[len] = addingChar;
         len++;
         str[len] = '\0';
@@ -100,8 +86,7 @@ public:
             delete[] str;
             memory_size /= 2;
             str = new char[memory_size];
-            str[0] = '\0';
-            strcat(str, temporaryString.str);
+            strcpy(str, temporaryString.str);
         }
     }
 
@@ -126,10 +111,15 @@ public:
     }
 
     String substr(size_t start, size_t count) const {
-        char* substring = new char[len * 2];
-        substring[0] = '\0';
-        strcat(substring, str + start);
-        substring[count] = '\0';
+        char* substring = new char[count * 2];
+
+        char* helpChars = new char[len * 2];
+        memcpy(helpChars, str, memory_size);
+        helpChars[start + count] = '\0';
+
+        strcpy(substring, helpChars + start);
+        delete[] helpChars;
+
         return substring;
     }
 
@@ -189,15 +179,14 @@ private:
             return isReverse ? len - indexOfInclusion - copySubstring.len : indexOfInclusion;
         }
     }
-    // Она почему-то не хочет работать! 
-    String& updateMemorySize(String& copy, size_t newLen) {
-        String temporaryString(copy);
+
+    void updateMemorySize(size_t newLen) {
+        String temporaryString(*this);
         delete[] str;
-        copy.memory_size = newLen * 2;
-        copy.str = new char[copy.memory_size];
-        copy.str[0] = '\0';
+        memory_size = newLen * 2;
+        str = new char[memory_size];
+        str[0] = '\0';
         strcat(str, temporaryString.str);
-        return copy;
     }
 };
 
