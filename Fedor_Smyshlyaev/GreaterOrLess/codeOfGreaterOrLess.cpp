@@ -31,6 +31,7 @@ char comparison(char* firstNum, char* secondNum) {
     size_t firstDotNumber = dotNumber(firstNum);
     size_t secondDotNumber = dotNumber(secondNum);
 
+    /// Сюда все очень хорошо заходит, когда надо (P.S. ф-ию dotNumber изменил в v2.0, там была ошибка)
     if (strlen(firstNum) > firstDotNumber) removeNull(firstNum);
     if (strlen(secondNum) > secondDotNumber) removeNull(secondNum);
 
@@ -40,9 +41,13 @@ char comparison(char* firstNum, char* secondNum) {
     if (firstNum[0] != '-' && secondNum[0] == '-')
         answer = '>';
     else {
-        if (firstNum[0] == '-' && secondNum[0] == '-') reverse = !reverse;
-        if (firstDotNumber > secondDotNumber) answer = '>';
-        else if (secondDotNumber > firstDotNumber) answer = '<';
+        if (firstNum[0] == '-' && secondNum[0] == '-') 
+            reverse = !reverse;
+        if (firstDotNumber > secondDotNumber)
+            answer = '>';
+        else if (secondDotNumber > firstDotNumber) {
+            answer = '<';
+        }
         else {
             for (size_t i = 0; i < strlen(firstNum); i++) {
                 if (firstNum[i] - '0' > secondNum[i] - '0') {
@@ -57,8 +62,11 @@ char comparison(char* firstNum, char* secondNum) {
     }
 
     if (reverse) {
-        if (answer == '>') answer = '<';
-        else if (answer == '<') answer = '>';
+        if (answer == '>')
+            answer = '<';
+        else if (answer == '<') {
+            answer = '>';
+        }
     }
 
     return answer;
