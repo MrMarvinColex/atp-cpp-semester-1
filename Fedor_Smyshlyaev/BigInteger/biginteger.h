@@ -3,52 +3,6 @@
 #include <vector>
 
 class BigInteger {
-private:
-    const long long base = 1000000000; /// == 10^9
-    const int baseLength = 9;
-    bool mines;
-    int size;
-    std::vector<long long> vectorNums;
-
-    static int intMod(int& num) {
-        // It's change our integer like |x|
-        if (num < 0) num *= -1;
-        return num;
-    }
-
-    [[nodiscard]] bool modIsSmaller(const BigInteger& bigNum) const {
-        if (size != bigNum.size)
-            return size < bigNum.size;
-
-        int index = size - 1;
-        while (index > 0 && vectorNums[index] == bigNum.vectorNums[index])
-            index--;
-        return vectorNums[index] < bigNum.vectorNums[index];
-    }
-
-    [[nodiscard]] bool modIsEqual(const BigInteger& bigNum) const {
-        if (size != bigNum.size)
-            return false;
-        for (int i = size - 1; i >= 0; i--) {
-            if (vectorNums[i] != bigNum.vectorNums[i])
-                return false;
-        }
-        return true;
-    }
-
-    void deleteNulls() {
-        while(size > 1 && vectorNums[size - 1] == 0) {
-            vectorNums.pop_back();
-            size--;
-        }
-    }
-
-    void swap(BigInteger& bigNum) {
-        std::swap(mines, bigNum.mines);
-        std::swap(size, bigNum.size);
-        std::swap(vectorNums, bigNum.vectorNums);
-    }
-
 public:
     /// Friends
     friend class Rational;
@@ -59,22 +13,22 @@ public:
     ~BigInteger() = default;
 
     /// Constructor
-    BigInteger() : mines(false), size(1), vectorNums(1, 0) {}
+    BigInteger() : isMinus(false), size(1), vectorNums(1, 0) {}
 
 // "гном" is equal "dwarf", the joke is that simple integer is much smaller than BigInteger
-    BigInteger(int dwarf) : mines(dwarf < 0), size(intMod(dwarf) / base + 1), vectorNums() {
+    BigInteger(int dwarf) : isMinus(dwarf < 0), size(intAbs(dwarf) / base + 1), vectorNums() {
         for (int i = 0; i < size; i++) {
             vectorNums.push_back(dwarf % base);
             dwarf /= base;
         }
     }
 
-    BigInteger(const BigInteger& bigNum) : mines(bigNum.mines), size(bigNum.size), vectorNums(bigNum.vectorNums) {}
+    BigInteger(const BigInteger& bigNum) : isMinus(bigNum.isMinus), size(bigNum.size), vectorNums(bigNum.vectorNums) {}
 
     /// Methods
     [[nodiscard]] std::string toString() const {
         std::string string;
-        if (mines)
+        if (isMinus)
             string += '-';
         string += std::to_string(vectorNums[size - 1]);
         for (int i = size - 2; i >= 0; i--) {
@@ -91,7 +45,7 @@ public:
         BigInteger copy(bigNum);
         long long balance = 0;
 
-        if (mines == copy.mines) {
+        if (isMinus == copy.isMinus) {
             std::vector<long long> newVector;
             for (int i = 0; i <= std::max(size, copy.size); i++) {
                 long long firstNum = (i >= size ? 0 : vectorNums[i]);
@@ -106,7 +60,7 @@ public:
             if (modIsEqual(copy))
                 return *this = 0;
             if (modIsSmaller(copy)) {
-                mines = copy.mines;
+                isMinus = copy.isMinus;
                 swap(copy);
             }
             for (int i = 0; i < size; i++) {
@@ -125,12 +79,12 @@ public:
 
     BigInteger& operator-=(const BigInteger& bigNum) {
         BigInteger copy(bigNum);
-        copy.mines = !copy.mines;
+        copy.isMinus = !copy.isMinus;
         return (*this += copy);
     }
 
     BigInteger& operator*=(const BigInteger& bigNum) {
-        mines = (mines != bigNum.mines);
+        isMinus = (isMinus != bigNum.isMinus);
         std::vector<long long> newVector(size + bigNum.size, 0);
 
         for (int my = 0; my < size; my++) {
@@ -151,10 +105,10 @@ public:
         if (modIsSmaller(bigNum))
             return (*this = 0);
 
-        bool newMines = mines != bigNum.mines;
-        mines = false;
+        bool newMinus = isMinus != bigNum.isMinus;
+        isMinus = false;
         BigInteger divider(bigNum);
-        divider.mines = false;
+        divider.isMinus = false;
         BigInteger numerator(0);
         BigInteger answer(0);
 
@@ -180,7 +134,7 @@ public:
             answer += rightBorder;
         }
         *this = answer;
-        mines = newMines;
+        isMinus = newMinus;
         return *this;
     }
 
@@ -215,14 +169,14 @@ public:
 
     BigInteger& operator=(const BigInteger& bigNum) {
         size = bigNum.size;
-        mines = bigNum.mines;
+        isMinus = bigNum.isMinus;
         vectorNums = bigNum.vectorNums;
         return *this;
     }
 
     /// Logical operators
     bool operator==(const BigInteger& bigNum) const {
-        return modIsEqual(bigNum) && (mines == bigNum.mines);
+        return modIsEqual(bigNum) && (isMinus == bigNum.isMinus);
     }
 
     bool operator!=(const BigInteger& bigNum) const {
@@ -230,9 +184,9 @@ public:
     }
 
     bool operator<(const BigInteger& bigNum) const {
-        if (mines != bigNum.mines)
-            return mines;
-        return mines ? !modIsSmaller(bigNum) : modIsSmaller(bigNum);
+        if (isMinus != bigNum.isMinus)
+            return isMinus;
+        return isMinus ? !modIsSmaller(bigNum) : modIsSmaller(bigNum);
     }
 
     bool operator>(const BigInteger& bigNum) const {
@@ -240,9 +194,9 @@ public:
     }
 
     bool operator<=(const BigInteger& bigNum) const {
-        if (mines != bigNum.mines)
-            return mines;
-        return (mines ? (!modIsSmaller(bigNum) || modIsEqual(bigNum)) : (modIsSmaller(bigNum) || modIsEqual(bigNum)));
+        if (isMinus != bigNum.isMinus)
+            return isMinus;
+        return (isMinus ? (!modIsSmaller(bigNum) || modIsEqual(bigNum)) : (modIsSmaller(bigNum) || modIsEqual(bigNum)));
     }
 
     bool operator>=(const BigInteger& bigNum) const {
@@ -256,7 +210,7 @@ public:
 
     BigInteger operator-() const {
         BigInteger copy(*this);
-        copy.mines = (!copy.mines && copy);
+        copy.isMinus = (!copy.isMinus && copy);
         return copy;
     }
 
@@ -282,6 +236,52 @@ public:
 
     explicit operator bool() const {
         return !(*this == 0);
+    }
+
+private:
+    const long long base = 1000000000; /// == 10^9
+    const int baseLength = 9;
+    bool isMinus;
+    int size;
+    std::vector<long long> vectorNums;
+
+    static int intAbs(int& num) {
+        // It's change our integer like |x|
+        if (num < 0) num *= -1;
+        return num;
+    }
+
+    [[nodiscard]] bool modIsSmaller(const BigInteger& bigNum) const {
+        if (size != bigNum.size)
+            return size < bigNum.size;
+
+        int index = size - 1;
+        while (index > 0 && vectorNums[index] == bigNum.vectorNums[index])
+            index--;
+        return vectorNums[index] < bigNum.vectorNums[index];
+    }
+
+    [[nodiscard]] bool modIsEqual(const BigInteger& bigNum) const {
+        if (size != bigNum.size)
+            return false;
+        for (int i = size - 1; i >= 0; i--) {
+            if (vectorNums[i] != bigNum.vectorNums[i])
+                return false;
+        }
+        return true;
+    }
+
+    void deleteNulls() {
+        while(size > 1 && vectorNums[size - 1] == 0) {
+            vectorNums.pop_back();
+            size--;
+        }
+    }
+
+    void swap(BigInteger& bigNum) {
+        std::swap(isMinus, bigNum.isMinus);
+        std::swap(size, bigNum.size);
+        std::swap(vectorNums, bigNum.vectorNums);
     }
 };
 
@@ -318,7 +318,7 @@ std::istream & operator>>(std::istream& in, BigInteger& bigNum) {
     std::string string;
     in >> string;
     if (string[0] == '-') {
-        bigNum.mines = true;
+        bigNum.isMinus = true;
         string = std::string(string.begin() + 1, string.end());
     }
     std::vector<long long> newVector(string.size()/bigNum.baseLength + (string.size() % bigNum.baseLength != 0), 0);
@@ -337,37 +337,6 @@ std::istream & operator>>(std::istream& in, BigInteger& bigNum) {
 }
 
 class Rational{
-private:
-    BigInteger sky;
-    BigInteger hell;
-
-    BigInteger tenPow(int pow) const {
-        BigInteger ans(1);
-        for (int i = 0; i < pow; i++)
-            ans *= 10;
-        return ans;
-    }
-
-    // It's a recursion, but beautiful and short one.
-    BigInteger evclid(const BigInteger& f, const BigInteger& s) {
-        if (f == s || s == 0) return f;
-        return evclid(s, f % s);
-    }
-
-    void makeItShort() {
-        bool newMines = sky.mines;
-        sky.mines = false;
-
-        BigInteger highestDivisor = evclid(sky, hell);
-        if (highestDivisor == 0)
-            hell = 1;
-        else {
-            sky /= highestDivisor;
-            hell /= highestDivisor;
-        }
-        sky.mines = newMines;
-    }
-
 public:
     ///Friends
     friend Rational operator+(const Rational& first, const Rational& second);
@@ -397,7 +366,7 @@ public:
 
     [[nodiscard]] std::string asDecimal(size_t precision = 0) const {
         Rational copy = *this;
-        copy.sky.mines = false;
+        copy.sky.isMinus = false;
         std::string string;
         if (copy.sky != 0)
             string = (copy.sky * tenPow(precision) / copy.hell).toString();
@@ -406,7 +375,7 @@ public:
             string = fodder;
         }
         if (precision == 0) {
-            if (sky.mines)
+            if (sky.isMinus)
                 string = '-' + string;
             return string;
         }
@@ -415,7 +384,7 @@ public:
                 std::string fodder(precision - string.size() + 1, '0');
                 string = fodder + string;
             }
-            if (sky.mines)
+            if (sky.isMinus)
                 string = '-' + string;
             return string.substr(0, string.length() - precision) + '.' +
                    string.substr(string.length() - precision, precision);
@@ -432,7 +401,7 @@ public:
 
     Rational& operator-=(const Rational& dotNum) {
         Rational copy = dotNum;
-        copy.sky.mines = !copy.sky.mines;
+        copy.sky.isMinus = !copy.sky.isMinus;
         return *this += copy;
     }
 
@@ -446,9 +415,9 @@ public:
     Rational& operator/=(const Rational& dotNum) {
         sky *= dotNum.hell;
         hell *= dotNum.sky;
-        if (hell.mines && sky != 0) {
-            hell.mines = false;
-            sky.mines = !sky.mines;
+        if (hell.isMinus && sky != 0) {
+            hell.isMinus = false;
+            sky.isMinus = !sky.isMinus;
         }
         if (hell == 0 || sky == 0) {
             hell = 1;
@@ -466,7 +435,7 @@ public:
 
     Rational operator-() const {
         Rational copy = *this;
-        copy.sky.mines = (!copy.sky.mines && copy.sky);
+        copy.sky.isMinus = (!copy.sky.isMinus && copy.sky);
         return copy;
     }
 
@@ -498,6 +467,37 @@ public:
     explicit operator double() const {
         // I heard, that it's work
         return 1;
+    }
+
+private:
+    BigInteger sky;
+    BigInteger hell;
+
+    BigInteger tenPow(int pow) const {
+        BigInteger ans(1);
+        for (int i = 0; i < pow; i++)
+            ans *= 10;
+        return ans;
+    }
+
+    // It's a recursion, but beautiful and short one.
+    BigInteger evclid(const BigInteger& f, const BigInteger& s) {
+        if (f == s || s == 0) return f;
+        return evclid(s, f % s);
+    }
+
+    void makeItShort() {
+        bool newMinus = sky.isMinus;
+        sky.isMinus = false;
+
+        BigInteger highestDivisor = evclid(sky, hell);
+        if (highestDivisor == 0)
+            hell = 1;
+        else {
+            sky /= highestDivisor;
+            hell /= highestDivisor;
+        }
+        sky.isMinus = newMinus;
     }
 };
 
